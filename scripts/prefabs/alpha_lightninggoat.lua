@@ -252,6 +252,7 @@ local function fn()
 
     ------------------------------------------
 
+    inst:AddComponent("timer")
     inst:AddComponent("saltlicker")
     inst.components.saltlicker:SetUp(TUNING.SALTLICK_LIGHTNINGGOAT_USES)
 
