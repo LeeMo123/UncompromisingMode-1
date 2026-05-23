@@ -394,7 +394,9 @@ local function FindEnemiesNearbyAndShockThem(inst, attacker, target, ShockAgain,
                         mult = math.clamp(mult, 0.25, 1.5)
                     end
                     local damage = inst.components.weapon:GetDamage(attacker, target) * mult
-                    v.components.combat:GetAttacked(attacker, damage, nil, "electric")
+                    print("[StaticAmber] arc damage:", damage, "target:", v, "weapon:", inst)
+                    if not damage then return end
+                    v.components.combat:GetAttacked(attacker, damage, inst, "electric")
                     v:AddTag("arcgrounded")
                     ShockAgain(inst, attacker, v)
                     SpawnPrefab("electricchargedfx").Transform:SetPosition(v.Transform:GetWorldPosition())
@@ -418,7 +420,7 @@ local function ElectricAttack(inst, attacker, target, tier)
     end
 
     if target.components.combat then
-        target.components.combat:GetAttacked(attacker, static_mods[tier], nil, "electric")
+        target.components.combat:GetAttacked(attacker, static_mods[tier], inst, "electric")
     end
 
     if inst.components.weapon.stimuli ~= "electric" then
