@@ -719,3 +719,5 @@ local function Initialize(...)
     end
     return _Initialize(...)
 end
+
+GroundTiles.Initialize = Initialize
