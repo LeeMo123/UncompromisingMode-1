@@ -128,7 +128,7 @@ local NO_TAGS = { "FX", "NOCLICK", "DECOR", "INLIMBO" }
 local FREEZABLE_TAGS = { "freezable" }
 
 local SINKHOLD_BLOCKER_TAGS = { "hound_lightning" }
-local function Zap(posx, posz)
+local function Zap(inst, posx, posz)
     --local projectile = SpawnPrefab("hound_lightning")
     --projectile.Transform:SetPosition(posx, 0, posz)
 
@@ -144,28 +144,25 @@ local function Zap(posx, posz)
     end
 
     local offset = Vector3(0, 0, 0)
-    offset =
-        IsValidSinkholePosition(offset) and offset or
-        FindValidPositionByFan(math.random() * 2 * PI, TUNING.ANTLION_SINKHOLE.RADIUS * 1.8 + math.random(), 9,
-            IsValidSinkholePosition) or
-        FindValidPositionByFan(math.random() * 2 * PI, TUNING.ANTLION_SINKHOLE.RADIUS * 2.9 + math.random(), 17,
-            IsValidSinkholePosition) or
-        FindValidPositionByFan(math.random() * 2 * PI, TUNING.ANTLION_SINKHOLE.RADIUS * 3.9 + math.random(), 17,
-            IsValidSinkholePosition) or
-        nil
+    offset = IsValidSinkholePosition(offset) and offset
+        or FindValidPositionByFan(math.random() * 2 * PI, TUNING.ANTLION_SINKHOLE.RADIUS * 1.8 + math.random(), 9, IsValidSinkholePosition)
+        or FindValidPositionByFan(math.random() * 2 * PI, TUNING.ANTLION_SINKHOLE.RADIUS * 2.9 + math.random(), 17, IsValidSinkholePosition)
+        or FindValidPositionByFan(math.random() * 2 * PI, TUNING.ANTLION_SINKHOLE.RADIUS * 3.9 + math.random(), 17, IsValidSinkholePosition)
+        or nil
 
-    if offset ~= nil then
-        local sinkhole = SpawnPrefab("hound_lightning")
-        sinkhole.NoTags = { "INLIMBO", "shadow", "hound", "houndfriend" }
-        sinkhole.Transform:SetPosition(x + offset.x, 0, z + offset.z)
+    if offset then
+        local lightning = SpawnPrefab("hound_lightning")
+        lightning.owner = inst
+        lightning.NoTags = JoinArrays(lightning.NoTags, {"hound", "houndfriend"})
+        lightning.Transform:SetPosition(x + offset.x, 0, z + offset.z)
     end
 end
 
 local function LaunchProjectile(inst, targetpos)
     local x, y, z = targetpos.Transform:GetWorldPosition()
-    inst:DoTaskInTime(0, function(inst) Zap(x, z) end)
-    inst:DoTaskInTime(0.4, function(inst) Zap(x, z) end)
-    inst:DoTaskInTime(0.8, function(inst) Zap(x, z) end)
+    for i = 0, 2 do
+        inst:DoTaskInTime(i * .4, function(inst) Zap(inst, x, z) end)
+    end
 end
 
 local function Charging(inst)
@@ -214,7 +211,7 @@ local function OnNewTarget(inst, data)
     end
 end
 
-local RETARGET_CANT_TAGS = {"wall", "houndmound", "hound", "houndfriend"}
+local RETARGET_CANT_TAGS = { "wall", "houndmound", "hound", "houndfriend" }
 local function IsValidTarget(guy, inst)
     -- Horror hounds won't attack our reviver! (Crystal-Crested Buzzards)
     if inst:HasTag("lunar_aligned") and guy:HasTag("mutantdominant") then
@@ -559,7 +556,7 @@ local function fncommon(bank, build, morphlist, custombrain, stategraph, tags, d
         inst.components.locomotor:SetAllowPlatformHopping(true)
 
         inst:AddComponent("amphibiouscreature")
-        inst.components.amphibiouscreature:SetBanks(bank, bank.."_water")
+        inst.components.amphibiouscreature:SetBanks(bank, bank .. "_water")
         inst.components.amphibiouscreature:SetEnterWaterFn(OnEnterWater)
         inst.components.amphibiouscreature:SetExitWaterFn(OnExitWater)
 
@@ -661,7 +658,7 @@ end
 
 local function IsAlly(inst, guy)
     -- Prevents lightning from forking from a Lightning Hound's target to other Hounds and friends.
-    return UMCommonFns.IsAlly(inst, guy, {"hound", "houndfriend", "houndmound"})
+    return UMCommonFns.IsAlly(inst, guy, { "hound", "houndfriend", "houndmound" })
 end
 
 local function fnlightning()
@@ -671,11 +668,12 @@ local function fnlightning()
         return inst
     end
 
+    inst.UMIsAlly = IsAlly
+
     inst.sg.mem.noelectrocute = true
 
     inst:AddComponent("electricattacks")
     inst.components.electricattacks:AddSource(inst)
-    inst.UMIsAlly = IsAlly
 
     MakeMediumFreezableCharacter(inst, "hound_body")
 
@@ -731,7 +729,6 @@ local function GlacialProjectile(inst, target)
             end
 
             local spike = SpawnPrefab("glacialhound_icespike")
-
             spike.owner = inst
             spike.Transform:SetRotation(rad)
             spike.Transform:SetPosition(x1, y, z1)
@@ -834,7 +831,7 @@ local function RemoveIceShield(inst)
 end
 
 local function fnglacial()
-    local inst = fncommon("um_ice_warg", "um_ice_warg", nil, nil, nil, { "glacialhound" }--[[, { amphibious = true }]])
+    local inst = fncommon("um_ice_warg", "um_ice_warg", nil, nil, nil, { "glacialhound" } --[[, { amphibious = true }]])
 
     if not TheWorld.ismastersim then
         return inst
@@ -860,7 +857,6 @@ local function fnglacial()
 
     inst.components.combat:SetDefaultDamage(TUNING.HOUND_DAMAGE * 2)
     inst.components.health:SetMaxHealth(TUNING.WARGLET_HEALTH * 1.25)
-
 
     inst.task = nil
 
@@ -1048,6 +1044,79 @@ local function OnMagmaAttacked(inst, data)
     end
 end
 
+local ARC = 90 * DEGREES --degrees to each side
+local AOE_TARGET_CANT_TAGS = { "INLIMBO", "invisible", "notarget", "noattack" }
+local function PoofNearby(inst)
+    local x, y, z = inst.Transform:GetWorldPosition()
+    local rot = inst.Transform:GetRotation() * DEGREES
+    local x0, z0
+    local radius = 4
+    for i, v in ipairs(TheSim:FindEntities(x, y, z, radius, nil, AOE_TARGET_CANT_TAGS)) do
+        if v ~= inst and v:IsValid() and not v:IsInLimbo()
+            and not (v.components.health ~= nil and v.components.health:IsDead()) then
+            local attackable = UMCommonFns.IsNotFriendly(inst, v)
+            if not attackable then return end
+            local range = radius + v:GetPhysicsRadius(0)
+            local x1, y1, z1 = v.Transform:GetWorldPosition()
+            local dx = x1 - x
+            local dz = z1 - z
+            local distsq = dx * dx + dz * dz
+            if distsq > 0 and distsq < range * range and DiffAngleRad(rot, math.atan2(-dz, dx)) < ARC then
+                if not v.components.fueled and v.components.burnable and not v.components.burnable:IsBurning() and not v:HasTag("burnt") then
+                    v.components.burnable:Ignite()
+                end
+                if v.components.health then
+                    v.components.health:DoFireDamage(10, nil, true)
+                end
+            end
+        end
+    end
+end
+
+local function SetUpFire(inst, degrand, speed, scale, damage)
+    local x, y, z = inst.Transform:GetWorldPosition()
+    local projectile = SpawnPrefab("um_fire_projectile")
+    projectile.damager = inst
+
+    local rot = inst.Transform:GetRotation()
+    local dx = 1 * math.sin((rot + 90 + degrand) * DEGREES)
+    local dz = 1 * math.cos((rot + 90 + degrand) * DEGREES)
+    rot = rot + math.random(-20, 20)
+    projectile.Transform:SetPosition(x + dx, 1, z + dz)
+    projectile.Transform:SetRotation(rot)
+    projectile.speed = speed
+    projectile.scale = scale -- scale up sometimes.
+    projectile.damage = damage
+end
+
+local function ShootFireMagmaHound(inst, total_flame) --AXE obviously called by magmahound to perform its continuous fire breath attack
+    for i = 1, total_flame do
+        inst:DoTaskInTime(0 + math.random(1, 15) * FRAMES, function(inst)
+            SetUpFire(inst, 5, 20, 0.8 + math.random(0, 10) / 100, 2)
+            PoofNearby(inst)
+        end)
+    end
+end
+
+local function FirePoof(inst) --AXE Visual support for when the fire hound is briefly charging the spitfire attack
+    local x, y, z = inst.Transform:GetWorldPosition()
+    local x1 = x + 0.05 * math.random(-10, 10)
+    local z1 = z + 0.05 * math.random(-10, 10)
+    local y1 = 0 + .25 * math.random()
+    SpawnPrefab("halloween_firepuff_1").Transform:SetPosition(x1, y1, z1)
+    SpawnPrefab("magmafire").Transform:SetPosition(x1, 0, z1)
+end
+
+local function OnHitOtherBurn(inst, data)
+    local other = data.target
+    local burntarget = other.components.rideable and other.components.rideable:GetRider() or other
+    if burntarget and not (burntarget.components.health and burntarget.components.health:IsDead())
+        and not burntarget.components.fueled and burntarget.components.burnable and not burntarget.components.burnable:IsBurning() and not burntarget:HasTag("burnt") then
+        burntarget.components.burnable:Ignite(true, inst, inst)
+        FirePoof(burntarget)
+    end
+end
+
 local function fnmagma()
     local inst = fncommon("clayhound", "magmahound", nil, nil, nil, { "magmahound", "clay" })
 
@@ -1056,6 +1125,12 @@ local function fnmagma()
     end
 
     inst.UMIsAlly = IsAlly
+
+    if inst.components.combat then
+        inst:ListenForEvent("onhitother", OnHitOtherBurn)
+    end
+
+    inst.ShootFire = ShootFireMagmaHound
 
     --[[if inst.sg ~= nil then
         inst.sg:GoToState("idle")
@@ -1088,7 +1163,7 @@ local function fnmagma()
 
     inst.lightningshot = true
     inst.components.health.fire_damage_scale = 0 --AXE Magma hounds should take zero damage from the fire damage stimuli
-    
+
     return inst
 end
 

@@ -13,7 +13,7 @@ local function FieryAftermath(inst)
 end
 
 -- This prefab just isn't complicated enough to need seperate files for movement. One block of code suffices.
-local dont_target = { "pyre_toxin_immune", "wall", "chess" }
+local dont_target = {"FX", "NOCLICK", "INLIMBO", "notarget", "noattack", "invisible", "playerghost", "pyre_toxin_immune", "wall", "chess"}
 local function SimpleWander(inst)
     if not inst:HasTag("BUSYSMOLDERSPORE") then
         inst.randdir = math.random(1, 359)
@@ -46,8 +46,7 @@ local function FireSpread(inst)
 
     -- Instantly ignites anything flammable within a radius.
     local x, y, z = inst.Transform:GetWorldPosition()
-    local ents = TheSim:FindEntities(x, y, z, 2, nil,
-        { "FX", "NOCLICK", "INLIMBO", "invisible", "notarget", "noattack", "playerghost" })
+    local ents = TheSim:FindEntities(x, y, z, 2, nil, {"FX", "NOCLICK", "INLIMBO", "notarget", "noattack", "invisible", "playerghost"})
     if #ents > 0 then
         for i, v in pairs(ents) do
             if not v.components.fueled and v.components.burnable and not v.components.burnable:IsBurning() and not v:HasTag("burnt") then
@@ -57,7 +56,7 @@ local function FireSpread(inst)
     end
 
     -- Slight AoE damage. Mainly to set off other nearby Smolder Spores.
-    inst.components.combat:DoAreaAttack(inst, 3, nil, nil, "fire", { "SmolderSporeAvoid", "BUSYSMOLDERSPORE", "INLIMBO", "invisible", "noattack" })
+    inst.components.combat:DoAreaAttack(inst, 3, nil, nil, "fire", {"SmolderSporeAvoid", "BUSYSMOLDERSPORE", "FX", "NOCLICK", "INLIMBO", "notarget", "noattack", "invisible", "playerghost"})
 end
 
 -- Suddenly pop!
@@ -82,7 +81,9 @@ end
 -- Divebomb the ground and explode!
 local function Divebomb(inst)
     local x, y, z = inst.Transform:GetWorldPosition()
-    local refusetargets = TheSim:FindEntities(x, y, z, 2, "_health", nil, { "SmolderSporeAvoid", "plantkin" })
+    if not TheWorld.Map:IsVisualGroundAtPoint(x, y, z) then return end
+
+    local refusetargets = TheSim:FindEntities(x, y, z, 2, {"_health"}, nil, {"SmolderSporeAvoid", "plantkin"})
 
     if not inst:HasTag("BUSYSMOLDERSPORE") and #refusetargets < 1 then
         inst:AddTag("BUSYSMOLDERSPORE")
@@ -100,8 +101,7 @@ end
 
 -- Check if we're in range of a suitable target.
 local function TargetCheck(inst)
-    local nextvictim = FindClosestEntity(inst, 1, true, nil,
-        { "INLIMBO", "invisible", "notarget", "noattack", "playerghost" })
+    local nextvictim = FindClosestEntity(inst, 1, true, nil, {"INLIMBO", "notarget", "noattack", "invisible", "playerghost"})
 
     if not inst:HasTag("BUSYSMOLDERSPORE")
         and nextvictim ~= nil
@@ -185,20 +185,32 @@ end
 local function TimeToDie(inst) -- Forced explosion
     inst:AddTag("BUSYSMOLDERSPORE")
 
+    local x, y, z = inst.Transform:GetWorldPosition()
+
     if inst.components.locomotor ~= nil then
         inst.components.locomotor:Stop()
     end
 
-    inst.AnimState:PlayAnimation("divebomb", false)
+    if not TheWorld.Map:IsVisualGroundAtPoint(x, y, z) then
+        inst.AnimState:PlayAnimation("explode", false)
+        inst.AnimState:HideSymbol("spore_body")
+        inst:ListenForEvent("animover", function(inst)
+            if inst:IsValid() then
+                inst:Remove()
+            end
+        end)
+    else
+        inst.AnimState:PlayAnimation("divebomb", false)
 
-    inst:ListenForEvent("animover", function(inst)
-        if inst:IsValid() then
-            SpawnPrefab("explode_small").Transform:SetPosition(inst.Transform:GetWorldPosition())
-            FieryAftermath(inst)
-            FireSpread(inst)
-            inst:Remove()
-        end
-    end)
+        inst:ListenForEvent("animover", function(inst)
+            if inst:IsValid() then
+                SpawnPrefab("explode_small").Transform:SetPosition(inst.Transform:GetWorldPosition())
+                FieryAftermath(inst)
+                FireSpread(inst)
+                inst:Remove()
+            end
+        end)
+    end
 end
 
 local function OnDropped(inst)
@@ -426,8 +438,6 @@ local function pop_fn()
     return inst
 end
 
-
-
 -------------------------------
 --- SLINGSHOT FUNCTIONALITY ---
 -------------------------------
@@ -494,7 +504,7 @@ local function SS_OnHit(inst, attacker, target)
 
     -- Damage anything within a radius.
     local x, y, z = inst.Transform:GetWorldPosition()
-    local ents = TheSim:FindEntities(x, y, z, 3, nil, { "SmolderSporeAvoid", "BUSYSMOLDERSPORE", "INLIMBO", "invisible", "noattack" })
+    local ents = TheSim:FindEntities(x, y, z, 3, nil, {"SmolderSporeAvoid", "BUSYSMOLDERSPORE", "INLIMBO", "notarget", "noattack", "invisible"})
     if #ents > 0 then
         for i, v in pairs(ents) do
             local target = v

@@ -19,7 +19,6 @@ local prefabs =
     "um_cookpot_wagstaff_display",
 }
 
-
 for k, v in pairs(cooking.recipes.cookpot) do
     table.insert(prefabs, v.name)
 
@@ -27,8 +26,6 @@ for k, v in pairs(cooking.recipes.cookpot) do
         table.insert(assets, Asset("ANIM", "anim/" .. v.overridebuild .. ".zip"))
     end
 end
-
-
 
 local function onhammered(inst, worker)
     if inst.components.burnable ~= nil and inst.components.burnable:IsBurning() then
@@ -225,8 +222,6 @@ local function DishHologram(inst, dish)
     -- inst.display.AnimState:OverrideSymbol("swap_maindish", GetInventoryItemAtlas(dish..".tex"), dish..".tex")
 end
 
-
-
 -- Spawn Hologram
 local function Hologram(inst, ingredient, i)
     local hologram = SpawnPrefab(ingredient)
@@ -409,7 +404,7 @@ local function RedoTodays(inst, bias_to_effects)
             chnce = math.random()
             if chnce < 0.2 then
                 ingredient = "monstersmallmeat"
-            elseif chnce < 0.3 then
+            elseif chnce < 0.3 and not TheWorld.state.iswinter then
                 ingredient = "froglegs"
             elseif chnce < 0.4 then
                 ingredient = "drumstick"
@@ -448,9 +443,9 @@ local function RedoTodays(inst, bias_to_effects)
                 chnce = math.random()
                 if chnce < 0.33 then
                     ingredient = "berries"
-                elseif chnce < 0.66 then
+                elseif chnce < 0.66 and not TheWorld.state.iswinter then
                     ingredient = "acorn"
-                else
+                elseif not TheWorld.state.iswinter then
                     ingredient = "honey"
                 end
             end
@@ -461,7 +456,7 @@ local function RedoTodays(inst, bias_to_effects)
             else
                 ingredient = "bird_egg"
             end
-        else -- only viable large fruit
+        elseif not TheWorld.state.iswinter then -- only viable large fruit
             ingredient = "giant_blueberry"
         end
         table.insert(inst.todays_ingredients, ingredient)
@@ -634,8 +629,6 @@ local function EnableWorkable(inst)
     inst.components.workable:SetOnFinishCallback(onhammered_display)
 end
 
-
-
 local function fndisplay()
     local inst = CreateEntity()
 
@@ -707,7 +700,7 @@ local function fnlever()
     inst.entity:AddAnimState()
     inst.entity:AddNetwork()
 
-
+	MakeInventoryPhysics(inst)
 
     inst.AnimState:SetBank("um_cookpot_wagstaff_lever")
     inst.AnimState:SetBuild("um_cookpot_wagstaff_lever")
@@ -724,6 +717,8 @@ local function fnlever()
     inst:AddComponent("inventoryitem")
     inst.components.inventoryitem.atlasname = "images/inventoryimages/um_cookpot_wagstaff_lever.xml"
 
+    inst:AddTag("irreplaceable")
+	
     inst:AddComponent("tradable")
     return inst
 end
@@ -735,7 +730,7 @@ local function fnlever2()
     inst.entity:AddAnimState()
     inst.entity:AddNetwork()
 
-
+	MakeInventoryPhysics(inst)
 
     inst.AnimState:SetBank("um_cookpot_wagstaff_lever2")
     inst.AnimState:SetBuild("um_cookpot_wagstaff_lever2")
@@ -751,6 +746,8 @@ local function fnlever2()
 
     inst:AddComponent("inventoryitem")
     inst.components.inventoryitem.atlasname = "images/inventoryimages/um_cookpot_wagstaff_lever2.xml"
+
+    inst:AddTag("irreplaceable")
 
     inst:AddComponent("tradable")
     return inst

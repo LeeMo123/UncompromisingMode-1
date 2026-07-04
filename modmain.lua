@@ -2,9 +2,12 @@ local require = GLOBAL.require
 
 require "um_pocketdimensioncontainers"
 
+GLOBAL.UPDATE_CHECK = GLOBAL.CurrentRelease.GreaterOrEqualTo("R42_HEATED_VAULT") -- REMEMBER TO ALWAYS UPDATE THIS WITH NEW BETAS.
+
 GLOBAL.UMCommonFns = require("tools/um_commonfns")
 GLOBAL.MAX_GEM_TIER = 3
-GLOBAL.MIN_GEM_TIER = 0
+GLOBAL.MIN_GEM_TIER = 0 --ONLY USED FOR DATA. ACTUAL ENCHANT RANGE IS 1 TO 3. USE THE VARIABLE BELOW FOR THAT.
+GLOBAL.MIN_GEM_ENCHANT_TIER = 1
 
 GLOBAL.UM_DEV = GetModConfigData("devmode")
 if GLOBAL.UM_DEV then
@@ -21,7 +24,7 @@ ReloadPreloadAssets()
 -- Start the game mode
 SignFiles = require("uncompromising_writeables")
 
-local vanilla = require "screens/redux/scrapbookdata"
+--[[local vanilla = require "screens/redux/scrapbookdata"
 local uncomp = require "screens/redux/scrapbookdata_changes"
 
 local valid_data = {
@@ -58,7 +61,7 @@ local valid_data = {
     "picakble",
     "insulator",
     "insulator_type"
-}
+}]]
 
 AddPrefabPostInit("world", function(inst)
     -- this broke and we lost access to data generation :((((((
@@ -151,13 +154,13 @@ local function WathomMusicToggle(level)
 end
 
 -- wathomcustomvoice/wathomvoiceevent
-local function DoAdrenalineUpStinger(sound)
+--[[local function DoAdrenalineUpStinger(sound)
     if type(sound) == "string" then
         GLOBAL.TheFrontEnd:GetSound():PlaySound("wathomcustomvoice/wathomvoiceevent/" .. sound)
     else
         GLOBAL.TheFrontEnd:GetSound():PlaySound("dontstarve_DLC001/characters/wathgrithr/inspiration_down")
     end
-end
+end]]
 
 local function GetTargetFocus(player, telebase, telestaff) telestaff.target_focus = telebase end
 
@@ -167,7 +170,7 @@ local function GetAllActiveTelebases()
     local valid_telebases = {}
     for k, telebase in pairs(Ents) do
         if telebase.prefab == "telebase" then
-            if telebase.canteleto(telebase) then
+            if telebase.canteleto and telebase.canteleto(telebase) or telebase.valid_tp_target:value() then
                 table.insert(valid_telebases, telebase)
             end
         end
@@ -203,7 +206,7 @@ AddModRPCHandler("UncompromisingSurvival", "PianoPuzzleComplete2", PianoPuzzleCo
 AddModRPCHandler("UncompromisingSurvival", "PianoPuzzleComplete3", PianoPuzzleComplete3)
 
 AddClientModRPCHandler("UncompromisingSurvival", "WathomMusicToggle", WathomMusicToggle)
-AddClientModRPCHandler("UncompromisingSurvival", "WathomAdrenalineStinger", DoAdrenalineUpStinger)
+--AddClientModRPCHandler("UncompromisingSurvival", "WathomAdrenalineStinger", DoAdrenalineUpStinger)
 
 local function ToggleLagCompOn(self)
     if --[[not GLOBAL.IsDefaultScreen() or]] GLOBAL.ThePlayer == nil or GLOBAL.ThePlayer.hadcompenabled ~= nil then
@@ -501,6 +504,10 @@ GLOBAL.ancient_amulet_red_init_fn = function(inst, build_name) GLOBAL.basic_init
 
 GLOBAL.ancient_amulet_red_clear_fn = function(inst) GLOBAL.basic_clear_fn(inst, "amulet_red_ground") end
 
+GLOBAL.um_bomb_moon_init_fn = function(inst, build_name) GLOBAL.basic_init_fn(inst, build_name, "um_bomb_moon") end
+
+GLOBAL.um_bomb_moon_clear_fn = function(inst) GLOBAL.basic_clear_fn(inst, "um_bomb_moon") end
+
 GLOBAL.TUNING.DSTU.MODROOT = MODROOT
 
 modimport("init/init_statusannouncements")
@@ -510,4 +517,3 @@ AddSimPostInit(function()
         GLOBAL.ShadeRenderer:SetShadeTexture(GLOBAL.ShadeTypes.HoodedForestCanopy, GLOBAL.resolvefilepath("images/giant_tree.tex"))
     end
 end)
-

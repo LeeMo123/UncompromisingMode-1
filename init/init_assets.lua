@@ -18,6 +18,7 @@ local inventoryitems =
 {
     "um_buttery_fly",
     "um_ghost_pepper_item",
+    "um_antlionstaff",
     "air_conditioner",
     "ancient_amulet_red",
     "aphid",
@@ -341,6 +342,7 @@ local inventoryitems =
     "ms_plaguemask_formal", --dunno??
     "ms_feather_frock_fancy",
     "ms_twisted_antler",
+    "ms_um_trans_bomb_moon",
 
     --winona stuff
     "winona_battery_low_item_um",
@@ -467,7 +469,9 @@ local inventoryitems =
     "um_scrapper",
     "um_astral_projector",
     "um_astral_projector_target",
-    "um_blueprinting_kit"
+    "um_blueprinting_kit",
+    "um_cookpot_wagstaff_lever",
+    "um_cookpot_wagstaff_lever2"
 }
 
 local minimap_icons = {
@@ -606,9 +610,17 @@ for _, item in ipairs(scrapbook_icons) do
     RegisterScrapbookIconAtlas(GLOBAL.resolvefilepath("images/scrapbook/" .. item .. ".xml"), item .. ".tex")
 end
 
-
-
 Assets = {
+    --insight icons
+    Asset("IMAGE", "images/um_guano_rain_icon.tex"),
+    Asset("ATLAS", "images/um_guano_rain_icon.xml"),
+
+    Asset("IMAGE", "images/widowweb_icon.tex"),
+    Asset("ATLAS", "images/widowweb_icon.xml"),
+
+    Asset("IMAGE", "images/um_tornado_icon.tex"),
+    Asset("ATLAS", "images/um_tornado_icon.xml"),
+
     -- Cookbook HQ Icons
     Asset("IMAGE", "images/cookbook_beefalowings.tex"),
     Asset("ATLAS", "images/cookbook_beefalowings.xml"),
@@ -642,24 +654,22 @@ Assets = {
     Asset("ATLAS", "images/cookbook_viperjam.xml"),
     Asset("IMAGE", "images/cookbook_zaspberryparfait.tex"),
     Asset("ATLAS", "images/cookbook_zaspberryparfait.xml"),
-
     Asset("IMAGE", "images/cookbook_um_durian_cream_marshcake.tex"),
     Asset("ATLAS", "images/cookbook_um_durian_cream_marshcake.xml"),
-
     Asset("IMAGE", "images/cookbook_um_chiles_en_nogada.tex"),
     Asset("ATLAS", "images/cookbook_um_chiles_en_nogada.xml"),
-
     Asset("IMAGE", "images/cookbook_um_rice_pudding.tex"),
     Asset("ATLAS", "images/cookbook_um_rice_pudding.xml"),
-
     Asset("IMAGE", "images/cookbook_um_kebab.tex"),
     Asset("ATLAS", "images/cookbook_um_kebab.xml"),
-
     Asset("IMAGE", "images/cookbook_um_sponge_cake.tex"),
     Asset("ATLAS", "images/cookbook_um_sponge_cake.xml"),
-
     Asset("IMAGE", "images/cookbook_um_boomberrypie.tex"),
     Asset("ATLAS", "images/cookbook_um_boomberrypie.xml"),
+    Asset("IMAGE", "images/cookbook_um_boom_tart.tex"),
+    Asset("ATLAS", "images/cookbook_um_boom_tart.xml"),
+    Asset("IMAGE", "images/cookbook_um_ghost_fajita.tex"),
+    Asset("ATLAS", "images/cookbook_um_ghost_fajita.xml"),
 
     --crafting menu avatars
     Asset("IMAGE", "images/crafting_menu_avatars/avatar_wixie.tex"),
@@ -761,6 +771,8 @@ Assets = {
 
     Asset("IMAGE", "bigportraits/wathom_triumphant.tex"),
     Asset("ATLAS", "bigportraits/wathom_triumphant.xml"),
+
+    Asset("ANIM", "anim/wathom_wound_vfx.zip"),
 
     -- ITS WIXIE!!! (Also walter...)
 
@@ -1617,6 +1629,8 @@ Assets = {
     Asset("ANIM", "anim/um_bear_trap_tooth.zip"),
     Asset("ANIM", "anim/um_bear_trap_gold.zip"),
 
+    Asset("ANIM", "anim/um_antlionstaff.zip"),
+
     Asset("ANIM", "anim/slobberlobber.zip"),
 
     Asset("ANIM", "anim/beargerclaw.zip"),
@@ -1827,6 +1841,8 @@ Assets = {
 
     Asset("ANIM", "anim/swap_beargerclaw.zip"),
 
+    Asset("ANIM", "anim/swap_antlionstaff.zip"),
+
     Asset("ANIM", "anim/swap_um_harpoon.zip"),
 
     Asset("ANIM", "anim/swap_magnerang.zip"),
@@ -1963,6 +1979,10 @@ Assets = {
     Asset("ANIM", "anim/gem_meter.zip"),
 
     Asset("ANIM", "anim/blueprinting_kit.zip"),
+
+    Asset("ANIM", "anim/um_bomb_vortex.zip"),
+
+    Asset("ANIM", "anim/ui_krampusbag_2x5.zip")
 }
 
 for _, asset in pairs(inventoryitems) do
@@ -1994,4 +2014,22 @@ local limboleap_ui = {
 for _, path in ipairs(limboleap_ui) do
     table.insert(Assets, Asset("IMAGE", path .. ".tex"))
     table.insert(Assets, Asset("ATLAS", path .. ".xml"))
+end
+
+-- Craft Pot compatibility icons.
+local um_food_tags = {
+    "egg",
+    "foliage",
+    "frozen",
+    "inedible",
+    "insectoid",
+    "lice",
+    "magic",
+    "monster",
+    "plantmeat",
+    "seed",
+}
+for _, tag in ipairs(um_food_tags) do
+    table.insert(Assets, Asset("IMAGE", "images/um_food_tags/" .. tag .. ".tex"))
+    table.insert(Assets, Asset("ATLAS", "images/um_food_tags/" .. tag .. ".xml"))
 end

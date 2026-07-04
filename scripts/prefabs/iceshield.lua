@@ -5,24 +5,46 @@ local function OnHealthDelta(inst, oldpercent, newpercent, overtime, cause, affl
         inst._parent.SoundEmitter:PlaySound("meta4/mortars/cannonball_hit_ice")
         SpawnPrefab("mining_ice_fx").Transform:SetPosition(inst._parent.Transform:GetWorldPosition())
     end
+
+    if inst._parent ~= nil and inst._parent:IsValid() and inst._parent.components.health ~= nil and inst._parent:HasTag("player") then
+        inst._parent.ice_shield_health:set(math.floor(inst.components.health.currenthealth))
+        inst._parent.ice_shield_maxhealth:set(math.floor(inst.components.health.maxhealth))
+    end
 end
 
 local function ShouldWeaponPierce(inst, weapon, attacker)
     return attacker and attacker:HasTag("pierces_ice_shield")
         or weapon and (weapon.components.gem_enchantable and weapon.components.gem_enchantable:HasEnchantment("um_gemologyredgem2")
             or weapon:HasTag("pierces_ice_shield") or weapon.components.obsidiantool
+            or weapon.components.fumaroletool and weapon.components.fumaroletool:GetTempRange() > 2
             or weapon.components.weapon and (weapon.components.weapon.stimuli == "fire" or weapon.components.weapon:GetDamage(attacker, inst) == 0))
 end
 
 local function ShouldRecoilIceShield(inst, attacker, weapon, damage)
     local shouldrecoil = inst:HasTag("ice_shielded") and not ShouldWeaponPierce(inst, weapon, attacker)
-    if shouldrecoil and attacker and attacker.components.talker then
+    if shouldrecoil and attacker and attacker.components.talker and attacker:HasTag("player") then
         attacker.components.talker:Say(GetString(attacker, "ANNOUNCE_WEAPON_TOOWEAK_ICESHIELD"))
     end
-    return shouldrecoil, (ShouldWeaponPierce(inst, weapon, attacker) or not inst:HasTag("ice_shielded")) and damage or damage and damage / 2 or nil
+
+    local fumarolemult = weapon and weapon.components.fumaroletool and weapon.components.fumaroletool:GetTempRange() or 1
+
+    return shouldrecoil, (ShouldWeaponPierce(inst, weapon, attacker) or not inst:HasTag("ice_shielded")) and damage and damage * fumarolemult or damage and (damage / 2) * fumarolemult or nil
 end
 
+
 local function Init(inst, parent, fx_symbol, tier)
+    if parent.ice_shield then
+        parent.ice_shield:Remove()
+    end
+
+    if parent.shield_fx2 then
+        parent.shield_fx2:Remove()
+    end
+
+    if parent.shield_fx then
+        parent.shield_fx:Remove()
+    end
+
     inst.tier = tier
     inst._parent = parent
 
@@ -34,11 +56,6 @@ local function Init(inst, parent, fx_symbol, tier)
     fx.Transform:SetPosition(parent.Transform:GetWorldPosition())
     fx.entity:AddFollower()
     fx.Follower:FollowSymbol(parent.GUID, fx_symbol, 0, 0, 0)
-
-
-    if parent.ice_shield then
-        parent.ice_shield:Remove()
-    end
 
     parent.ice_shield = inst
     inst.entity:SetParent(parent.entity)
@@ -57,6 +74,9 @@ local function Init(inst, parent, fx_symbol, tier)
                 if cause == "fire" then
                     amount = amount * 10
                     SpawnPrefab("washashore_puddle_fx").Transform:SetPosition(parent.Transform:GetWorldPosition())
+                    if inst._parent.components.moisture then
+                        inst._parent.components.moisture:DoDelta(math.abs(amount / 10))
+                    end
                 end
 
                 inst.components.health:DoDelta(amount, overtime, cause, ...)
@@ -70,15 +90,6 @@ local function Init(inst, parent, fx_symbol, tier)
         parent.components.combat:SetShouldRecoilFn(ShouldRecoilIceShield)
     end
 
-    if parent.shield_fx2 then
-        parent.shield_fx2:Remove()
-    end
-
-    if parent.shield_fx then
-        parent.shield_fx:Remove()
-    end
-
-
     parent.shield_fx = SpawnPrefab("deer_ice_flakes")
     parent.shield_fx.Transform:SetPosition(parent.Transform:GetWorldPosition())
     parent.shield_fx.entity:AddFollower()
@@ -87,6 +98,15 @@ local function Init(inst, parent, fx_symbol, tier)
 
     parent.shield_fx2 = SpawnPrefab("um_ice_shield_fx")
     parent.shield_fx2.entity:SetParent(parent.entity) --don't need followsymbol here.
+
+    if parent:IsValid() and parent.components.health ~= nil and parent:HasTag("player") then
+        parent.ice_shield_health:set(math.floor(inst.components.health.currenthealth))
+        parent.ice_shield_maxhealth:set(math.floor(inst.components.health.maxhealth))
+    end
+
+    if parent.components.temperature and UPDATE_CHECK then
+        parent.components.temperature:SetInsulationModifier(SEASONS.SUMMER, inst, TUNING.INSULATION_SMALL)
+    end
 end
 
 local function fn()
@@ -111,10 +131,19 @@ local function fn()
     --inst.components.health.externalfiredamagemultipliers:SetModifier(inst, 10)
     --this doesn't work as expected. It never actually gets fire damaged directly. fire damage mults are on the redirect.
 
-    inst:DoPeriodicTask(2.5, function(inst)
-        if inst.components.health:GetPercent() < 1 then
-            inst.components.health:DoDelta(1 * inst.tier)
+    inst.regen_task = inst:DoPeriodicTask(2.5, function(inst)
+        local temperature_scale = Lerp(2, -2, TheWorld.state.temperature / 80)
+        local value = 1 * inst.tier * temperature_scale
+        if value < 0 then
+            local fx = SpawnPrefab("washashore_puddle_fx")
+            fx.Transform:SetPosition(inst._parent.Transform:GetWorldPosition())
+
+            if inst._parent.components.moisture then
+                inst._parent.components.moisture:DoDelta(math.abs(value))
+            end
         end
+
+        inst.components.health:DoDelta(value)
     end)
 
     inst.Init = Init
@@ -125,16 +154,7 @@ local function fn()
         end
 
         if inst._parent then
-            inst._parent:RemoveTag("ice_shielded")
             inst._parent:PushEvent("ice_shield_death")
-
-            if inst._parent.shield_fx then
-                inst._parent.shield_fx:Remove()
-            end
-
-            if inst._parent.shield_fx2 then
-                inst._parent.shield_fx2:Remove()
-            end
 
             if inst._parent.components.burnable then
                 inst._parent.components.burnable:Extinguish()
@@ -148,6 +168,23 @@ local function fn()
         if inst._parent then
             inst._parent:RemoveTag("ice_shielded")
             inst._parent.components.health.redirect = inst.redirect_old and inst.redirect_old or nil
+
+            if inst._parent.components.temperature and UPDATE_CHECK then
+                inst._parent.components.temperature:RemoveInsulationModifier(SEASONS.SUMMER, inst)
+            end
+
+            if inst._parent.ice_shield_health then
+                inst._parent.ice_shield_health:set(0)
+                inst._parent.ice_shield_maxhealth:set(0)
+            end
+
+            if inst._parent.shield_fx then
+                inst._parent.shield_fx:Remove()
+            end
+
+            if inst._parent.shield_fx2 then
+                inst._parent.shield_fx2:Remove()
+            end
         end
     end)
 

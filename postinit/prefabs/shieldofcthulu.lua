@@ -94,6 +94,24 @@ local function CommonFunctions(inst, sound, anim)
     end
 end
 
+local function OnVetcurseDirty(inst)
+	if inst._vetcurseupgraded:value() then
+		inst.spelltype = "UM_SHIELD_BASH"
+		inst:AddTag("allow_action_on_impassable")
+	else
+		inst.spelltype = nil
+		inst:RemoveTag("allow_action_on_impassable")
+	end
+end
+
+local function CantCastOnTarget(inst, doer, pos, target, actioncount)
+    return actioncount
+end
+
+local function OnCharged(inst)
+    inst.SoundEmitter:PlaySound("terraria1/eyeofterror/charge", nil, .4)
+end
+
 local function OnAttack(inst, attacker, target)
     local efficientuser = attacker.components.efficientuser and attacker.components.efficientuser:GetMultiplier(ACTIONS.ATTACK) or 1
     local useMult = efficientuser * inst.components.weapon.attackwearmultipliers:Get()
@@ -134,38 +152,6 @@ local function ToggleItemVetcurse(inst, toggle)
     end
 end
 
-local function ReticuleTargetFn(inst)
-    return Vector3(inst.entity:LocalToWorldSpace(6.5, 0, 0))
-end
-
-local function ReticuleMouseTargetFn(inst, mousepos)
-    if mousepos then
-        local x, y, z = inst.Transform:GetWorldPosition()
-        local dx = mousepos.x - x
-        local dz = mousepos.z - z
-        local l = dx * dx + dz * dz
-        if l <= 0 then return inst.components.reticule.targetpos end
-        l = 6.5 / math.sqrt(l)
-        return Vector3(x + dx * l, 0, z + dz * l)
-    end
-end
-
-local function ReticuleUpdatePositionFn(inst, pos, reticule, ease, smoothing, dt)
-    local x, y, z = inst.Transform:GetWorldPosition()
-    reticule.Transform:SetPosition(x, 0, z)
-    local rot = -math.atan2(pos.z - z, pos.x - x) / DEGREES
-    if ease and dt then
-        local rot0 = reticule.Transform:GetRotation()
-        local drot = rot - rot0
-        rot = Lerp((drot > 180 and rot0 + 360) or drot < -180 and rot0 - 360 or rot0, rot, dt * smoothing)
-    end
-    reticule.Transform:SetRotation(rot)
-end
-
-local function ReticuleShouldHideFn(inst)
-    return inst._vetcurseupgraded and not inst._vetcurseupgraded:value()
-end
-
 local function OnPutInInventory(inst, owner)
     if inst.UMToggleItemVetcurse then inst:UMToggleItemVetcurse(owner:HasTag("vetcurse")) end
 end
@@ -177,24 +163,9 @@ env.AddPrefabPostInit("shieldofterror", function(inst)
     inst._vetcurseupgraded = net_bool(inst.GUID, "shieldofterror.vetcurse", "vetcursedirty")
     inst._vetcurseupgraded:set(false)
 
-    inst:ListenForEvent("vetcursedirty", function(inst)
-        inst.spelltype = inst._vetcurseupgraded:value() and "UM_SHIELD_BASH" or nil
-    end)
+    inst:ListenForEvent("vetcursedirty", OnVetcurseDirty)
 
-    local reticule = inst.components.reticule or inst:AddComponent("reticule")
-    inst.components.reticule.reticuleprefab = "reticuleline2"
-    inst.components.reticule.pingprefab = "reticulelongping"
-    -- inst.components.reticule.reticuleprefab = "reticuleline2"
-    -- inst.components.reticule.pingprefab = "reticulelineping"
-    inst.components.reticule.targetfn = ReticuleTargetFn
-    inst.components.reticule.mousetargetfn = ReticuleMouseTargetFn
-    inst.components.reticule.updatepositionfn = ReticuleUpdatePositionFn
-    inst.components.reticule.shouldhidefn = ReticuleShouldHideFn
-    inst.components.reticule.validcolour = { 1, 1, 1, 1 }
-    inst.components.reticule.invalidcolour = { .5, 0, 0, 1 }
-    inst.components.reticule.ease = true
-    inst.components.reticule.mouseenabled = true
-    inst.components.reticule.ispassableatallpoints = true
+    inst.um_cantcastontarget = CantCastOnTarget
 
     if not TheWorld.ismastersim then return end
 
@@ -210,6 +181,7 @@ env.AddPrefabPostInit("shieldofterror", function(inst)
     CommonFunctions(inst, "eye_shield", "idle")
 
     local rechargeable = inst.components.rechargeable or inst:AddComponent("rechargeable")
+    inst.components.rechargeable:SetOnChargedFn(OnCharged)
 
     inst.UMToggleItemVetcurse = ToggleItemVetcurse
 

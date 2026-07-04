@@ -51,7 +51,7 @@ local component_post = {
     "walkableplatformplayer",
     "schoolspawner",
     "builder",
-
+    "spellcaster",
     "raindome",
     "fillable",
 
@@ -76,7 +76,8 @@ local component_post = {
     "actionqueuer",
     "wavemanager",
     "seamlessplayerswapper",
-    "grottowarmanager"
+    "grottowarmanager",
+    "quaker"
 }
 
 local prefab_post = {
@@ -109,7 +110,6 @@ local prefab_post = {
     "foodbuffs",
     "mutatedhound",
     "skeleton",
-    --"shadowcreature",
     "berrybush",
     --"papyrus",
     "sporecloud",
@@ -155,7 +155,7 @@ local prefab_post = {
     "pktrades",
     "pigking",
     "marblebean",
-    "reviver",
+    --"reviver",
     --"bundle",
     "eyebrella",
     "birds",
@@ -249,7 +249,6 @@ local prefab_post = {
     "cave_vent_mite",
     "bananabush",
     "tillweedsalve",
-    "ancienttree_fruits",
     "um_moonmutables",
     "rocky",
     "slurper",
@@ -258,7 +257,9 @@ local prefab_post = {
     "monkey_smallhat",
     "cane",
     "onemanband",
-    "cursed_monkey_token"
+    "cursed_monkey_token",
+    "slurtle_shellpieces",
+    "fused_shadeling"
 }
 
 local stategraph_post = {
@@ -296,7 +297,8 @@ local class_post = {
     "widgets/inventorybar",
     "widgets/containerwidget",
     "widgets/statusdisplays",
-    "screens/scrapbookscreen"
+    "screens/scrapbookscreen",
+    "widgets/healthbadge"
 }
 
 local brain_post = {
@@ -310,9 +312,9 @@ local brain_post = {
     --"catcoon",
     "walrus",
     "deer",
-    "shadowwaxwell",
     "hound",
-    "iceshield"
+    "iceshield",
+    "brightmare_gestalt"
 }
 
 --package post system courtesy of IA team!
@@ -320,7 +322,6 @@ local package_post = {
     ["components/map"] = "map",
     ["shadeeffects"] = "shadeeffects",
 }
-
 
 local _require = GLOBAL.require
 function GLOBAL.require(modulename, ...)
@@ -387,7 +388,6 @@ if GetModConfigData("wixie_walter") then
     RemapSoundEvent("dontstarve/characters/wixie/sinking", "wixie/characters/wixie/sinking")
 end
 
-
 if GetModConfigData("hangyperds") then
     table.insert(stategraph_post, "perd")
     table.insert(brain_post, "perdhungry")
@@ -413,7 +413,6 @@ end
 if GetModConfigData("harder_leifs") then
     table.insert(stategraph_post, "Leif")
     table.insert(prefab_post, "leif")
-    table.insert(prefab_post, "leif_sparse")
     table.insert(brain_post, "leif")
 end
 

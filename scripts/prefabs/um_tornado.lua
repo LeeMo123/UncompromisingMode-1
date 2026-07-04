@@ -104,7 +104,7 @@ local destroy_prefabs = {
 local function PickItem(item, inst)
     if item.components.inventoryitem ~= nil and item.prefab ~= "bullkelp_beachedroot" and item:IsValid() and not item:HasTag("heavy") then
         if item.Physics ~= nil then item.Physics:Stop() end
-        inst.components.inventory:GiveItem(item)
+        inst.garbagepatch_inventory.components.inventory:GiveItem(item)
         local stacksize = item.components.stackable ~= nil and item.components.stackable:StackSize() or 1
 
         if item.components.health ~= nil then
@@ -119,7 +119,7 @@ local function PickItem(item, inst)
                     for k, _loot in pairs(loots) do
                         local loot = SpawnPrefab(_loot)
                         if loot ~= nil and loot:IsValid() then
-                            inst.components.inventory:GiveItem(loot)
+                            inst.garbagepatch_inventory.components.inventory:GiveItem(loot)
                         else
                             loot:Remove()
                         end
@@ -128,7 +128,7 @@ local function PickItem(item, inst)
             end
 
             if item ~= nil and item.components.inventory and item:HasTag("drop_inventory_onmurder") then
-                item.components.inventory:TransferInventory(inst)
+                item.components.inventory:TransferInventory(inst.garbagepatch_inventory)
             end
 
             item:Remove()
@@ -142,7 +142,7 @@ local function TornadoEnviromentTask(inst)
     if config ~= "minimal" then
         -- if GetClosestInstWithTag("player", inst, PLAYER_CAMERA_SEE_DISTANCE * 1.125) ~= nil then -- tornado doesn't sleep. Using alt distance-based check.
         -- PICKABLES
-        local pickables = TheSim:FindEntities(x, y, z, 12, nil, { "prototyper", "INLIMBO", "trap", "flower", "heavy", "tornado_nosucky" }, { "pickable", "HACK_workable" })
+        local pickables = TheSim:FindEntities(x, y, z, 12, nil, {"prototyper", "INLIMBO", "trap", "flower", "heavy", "tornado_nosucky"}, {"pickable", "HACK_workable"})
         for k, v in ipairs(pickables) do
             if v.prefab ~= "sculptingtable" then
                 local _x, _y, _z = v.Transform:GetWorldPosition()
@@ -154,7 +154,7 @@ local function TornadoEnviromentTask(inst)
                             return
                         end
 
-                        v.components.pickable:Pick(inst)
+                        v.components.pickable:Pick(TheWorld)
                     end
                 elseif v.components.hackable and v.components.hackable:CanBeHacked() then
                     if not v:IsAsleep() and not config == "reduced" then
@@ -171,8 +171,7 @@ local function TornadoEnviromentTask(inst)
         end
 
         -- WORKING
-        local workables = TheSim:FindEntities(x, y, z, 6, nil, { "heavy", "irreplaceable", "INLIMBO", "trap", "winter_tree", "farm_plant", "_inventory", "sign", "drawable", "tornado_nosucky" },
-            { "DIG_workable", "CHOP_workable" })
+        local workables = TheSim:FindEntities(x, y, z, 6, nil, {"heavy", "irreplaceable", "INLIMBO", "trap", "winter_tree", "farm_plant", "_inventory", "sign", "drawable", "tornado_nosucky", "waxedplant"}, {"DIG_workable", "CHOP_workable"})
 
         for k, v in ipairs(workables) do
             local _x, _y, _z = v.Transform:GetWorldPosition()
@@ -195,12 +194,11 @@ local function TornadoEnviromentTask(inst)
         end
 
         -- ITEM PICKING
-        local items_pick = TheSim:FindEntities(x, y, z, 6, { "_inventoryitem" }, --no dome check because dome component adds nosucky tag.
-            { "irreplaceable", "tornado_nosucky", "trap", "INLIMBO", "heavy", "backpack" })
+        local items_pick = TheSim:FindEntities(x, y, z, 6, {"_inventoryitem"}, {"irreplaceable", "tornado_nosucky", "trap", "INLIMBO", "heavy", "backpack"}) --no dome check because dome component adds nosucky tag.
         for k, v in ipairs(items_pick) do
             if v.prefab == "staff_tornado" then
-                if not v.empowered then
-                    v.ChargeUp(v)
+                if not v.empowered and v.ChargeUp then
+                    v:ChargeUp()
                     SpawnPrefab("lightning").Transform:SetPosition(v.Transform:GetWorldPosition())
                 end
             else
@@ -219,8 +217,7 @@ local function TornadoEnviromentTask(inst)
     end
 
     -- DAMAGING
-    local AURA_EXCLUDE_TAGS = { "noclaustrophobia", "rabbit", "playerghost", "player", "ghost", "shadow",
-        "shadowminion", "noauradamage", "INLIMBO", "notarget", "noattack", "invisible", "trap", "tornado_nosucky" }
+    local AURA_EXCLUDE_TAGS = {"noclaustrophobia", "rabbit", "playerghost", "player", "ghost", "shadow", "shadowminion", "noauradamage", "INLIMBO", "notarget", "noattack", "invisible", "trap", "tornado_nosucky"}
 
     local targets = TheSim:FindEntities(x, y, z, 4, nil, AURA_EXCLUDE_TAGS, { "_combat", "um_tornado_redirector" })
 
@@ -391,10 +388,6 @@ local function TornadoTask(inst)
                     inst.startmoving = false
 
 
-                    local inv = TheWorld.components.garbagepatch_manager:GetInventory()
-                    inst.components.inventory:TransferInventory(inv)
-
-                    TheWorld.components.garbagepatch_manager:SpawnPatch()
                     if destination ~= nil then
                         destination:Remove()
                     end
@@ -413,14 +406,7 @@ local function TornadoTask(inst)
                 inst.AnimState:PlayAnimation("tornado_pst", false)
 
                 inst:ListenForEvent("animover", function()
-                    for k, v in ipairs(inst.components.inventory.itemslots) do
-                        local item = inst.components.inventory:RemoveItem(v, true)
-                        local pos = getrandomposition(inst)
-                        item.Transform:SetPosition(pos.x + math.random(-8, 8), pos.y, pos.z + math.random(-8, 8))
-                    end
-
                     inst.startmoving = false
-
                     inst:Remove()
                 end)
 
@@ -450,6 +436,8 @@ end
 
 local function OnRemoveEntity(inst)
     inst.icon:Remove()
+
+    TheWorld.components.garbagepatch_manager:SpawnPatch()
 end
 
 local function fn()
@@ -482,6 +470,9 @@ local function fn()
         inst:DoTaskInTime(0, inst.Remove)
     end
 
+    inst.garbagepatch_inventory = TheWorld.components.garbagepatch_manager:GetInventory()
+    inst.startmoving = true
+
     inst.ForceEnding = function()
         local destination = TheSim:FindFirstEntityWithTag("um_tornado_destination")
 
@@ -489,11 +480,6 @@ local function fn()
 
         inst:ListenForEvent("animover", function()
             inst.startmoving = false
-
-            inst.components.inventory:TransferInventory(TheWorld.components.garbagepatch_manager:GetInventory())
-
-            TheWorld.components.garbagepatch_manager:SpawnPatch()
-
             if destination ~= nil then
                 destination:Remove()
             end

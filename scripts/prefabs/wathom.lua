@@ -218,14 +218,22 @@ local function SapTask(inst)
                 if chest.components.fueled and chest.components.fueled:GetPercent() < 1 then
                     local maxfuel = chest.components.fueled.maxfuel
                     chest.components.fueled:DoDelta(0.005*maxfuel)
+                    --Fueled:StopConsuming() self.consuming = false
+                    --function Fueled:SetMultiplierFn(fn)
+                        --self.multfn = fn
+                    --end
                 end
                 if chest.components.finiteuses and chest.components.finiteuses:GetPercent() < 1  then
                     local maxuses = chest.components.finiteuses.total
                     chest.components.finiteuses:Use(-0.005*maxuses)
+                    --FiniteUses:SetConsumption(action, uses)
                 end
                 if chest.components.armor and chest.components.armor:GetPercent() < 1 then
                     local maxfuel = chest.components.armor.maxcondition
                     chest.components.armor:Repair(0.005*maxfuel)
+                    --if equip ~= nil and equip.components.armor ~= nil then
+                        --equip.components.armor.conditionlossmultipliers:SetModifier(inst, TUNING.DSTU.BATTLESONG_LUNAR_DURABILITY_MOD_ARMOR)
+                    --end
                 end    
             end
         end
@@ -423,28 +431,29 @@ local function WathomEnterDark(inst)
 end]]
 
 local function CheckLight(inst)
-    if inst:IsInLight() then
+    local x, y, z = inst.Transform:GetWorldPosition()
+    if TheWorld.state.isnight and not TheWorld.state.isfullmoon and TheSim:GetLightAtPoint(x, y, z) <= .9 then
+        if inst.updatewathomvisiontask then
+            inst.updatewathomvisiontask:Cancel()
+            inst.updatewathomvisiontask = nil
+        end
+        --print(NIGHTVISION_CCS, TUNING.DSTU.WATHOM_NIGHTVISON_CC, NIGHTVISION_CCS[TUNING.DSTU.WATHOM_NIGHTVISON_CC])
+        inst.components.playervision:SetCustomCCTable(NIGHTVISION_CCS[TUNING.DSTU.WATHOM_NIGHTVISON_CC])
+        inst.components.playervision:ForceNightVision(true)
+        if TheWorld.ismastersim then
+            inst:AddTag("WathomInDark")
+        end
+    else
         if not inst.updatewathomvisiontask then
             inst.updatewathomvisiontask = inst:DoTaskInTime(2, function()
                 inst.components.playervision:SetCustomCCTable(nil)
                 inst.components.playervision:ForceNightVision(false)
-                inst:RemoveTag("WathomInDark")
-
-                if inst.updatewathomvisiontask ~= nil then
-                    inst.updatewathomvisiontask:Cancel()
+                if TheWorld.ismastersim then
+                    inst:RemoveTag("WathomInDark")
                 end
+                inst.updatewathomvisiontask = nil
             end)
         end
-    else
-        if inst.updatewathomvisiontask then
-            inst.updatewathomvisiontask:Cancel()
-        end
-
-        inst.updatewathomvisiontask = nil
-        --print(NIGHTVISION_CCS, TUNING.DSTU.WATHOM_NIGHTVISON_CC, NIGHTVISION_CCS[TUNING.DSTU.WATHOM_NIGHTVISON_CC])
-        inst.components.playervision:SetCustomCCTable(NIGHTVISION_CCS[TUNING.DSTU.WATHOM_NIGHTVISON_CC])
-        inst.components.playervision:ForceNightVision(true)
-        inst:AddTag("WathomInDark")
     end
 end
 
@@ -464,7 +473,6 @@ local function onload(inst, data)
             inst:AddTag("amped")
             SendModRPCToClient(GetClientModRPC("UncompromisingSurvival", "WathomMusicToggle"), inst.userid, GetMusicValues(inst))
         end
-
         if data.deathamped then
             inst:AddTag("deathamp")
             SendModRPCToClient(GetClientModRPC("UncompromisingSurvival", "WathomMusicToggle"), inst.userid, GetMusicValues(inst))
@@ -505,7 +513,7 @@ local function UpdateAdrenaline(inst, data)
     local item = inst.components.inventory:GetEquippedItem(EQUIPSLOTS.HANDS)
 
     --seperate 'if's so all sounds can play at once, in theory. (And I don't have to worry about elseif order...)
-    if data.oldpercent < 0.75 and data.newpercent >= 0.75 then
+    --[[if data.oldpercent < 0.75 and data.newpercent >= 0.75 then
         SendModRPCToClient(GetClientModRPC("UncompromisingSurvival", "WathomAdrenalineStinger"), inst.userid, "wathom_ampstage_04")
     end
     if data.oldpercent < 0.5 and data.newpercent >= 0.5 then
@@ -520,7 +528,7 @@ local function UpdateAdrenaline(inst, data)
     end
     if data.oldpercent >= 0 and data.newpercent == 0 and inst:HasTag("amped") then
         SendModRPCToClient(GetClientModRPC("UncompromisingSurvival", "WathomAdrenalineStinger"), inst.userid, "wathom_breathe")
-    end
+    end]]
 
     CheckForCaneRun(inst)
 
@@ -532,10 +540,10 @@ local function UpdateAdrenaline(inst, data)
     elseif AmpLevel < 0.5 and not inst:HasTag("amped") then
         inst.components.combat.attackrange = item and 4 or 2
         inst.AmpDamageTakenModifier = 1
-    elseif AmpLevel >= 1 and not inst:HasTag("amped") and HasSkill(inst,"amp_3") then
+    elseif AmpLevel >= 1 and not inst:HasTag("amped") and HasSkill(inst,"amp_2") then
         Amp(inst)
         inst.AmpDamageTakenModifier = TUNING.DSTU.WATHOM_AMPED_VULNERABILITY
-    elseif AmpLevel >= 1 and not inst:HasTag("amped") and HasSkill(inst,"amp_3") then
+    elseif AmpLevel >= 1 and not inst:HasTag("amped") and HasSkill(inst,"amp_2") then
         inst.components.combat.attackrange = item and (HasSkill(inst,"amp_2") and 6 or HasSkill(inst,"amp_1") and 5) or 2
         --inst.components.health:SetAbsorptionAmount(HasSkill(inst,"amp_2") and -0.5 or HasSkill(inst,"amp_2") and -0.25 or 0)
         inst.AmpDamageTakenModifier = HasSkill(inst,"amp_2") and 2 or HasSkill(inst,"amp_1") and 1.5 or 1    
@@ -687,6 +695,16 @@ local function WathomWarnsEarly(inst, threattype)
     inst.owner.components.talker:Say("Others can't hear, "..threattype.." is coming.")
 end
 
+local AMP_TAGS = {"amped", "deathamp"}
+
+local function CanSleepInBagFn(wathom, bed)
+    if not wathom:HasAnyTag(AMP_TAGS) then
+        return true
+    else
+        return false, "ANNOUNCE_NOHUNGERSLEEP"
+    end
+end
+
 -- This initializes for the server only. Components are added here.
 local function master_postinit(inst)
     --    inst.components.sanity:EnableLunacy(true, "wathomlunacy")
@@ -724,6 +742,8 @@ local function master_postinit(inst)
     inst.components.hunger:SetMax(TUNING.WATHOM_HUNGER)
     inst.components.sanity:SetMax(TUNING.WATHOM_SANITY)
 
+    inst.components.sleepingbaguser:SetCanSleepFn(CanSleepInBagFn)
+
     --    inst.components.sanity.neg_aura_absorb = TUNING.ARMOR_HIVEHAT_SANITY_ABSORPTION -- Reverses insanity auras and reduces by 50%
 
     -- Damage multiplier (In reality, Wathom won't deal double damage. The time it takes for him to attack is about twice as long as other characters.
@@ -739,10 +759,6 @@ local function master_postinit(inst)
     -- Grogginess stuff
     inst:ListenForEvent("ms_respawnedfromghost", SetupKnockOutTest)
     SetupKnockOutTest(inst)
-
-    inst:DoPeriodicTask(.3, CheckLight)
-    --[[inst:ListenForEvent("enterdark", WathomEnterDark)
-    inst:ListenForEvent("enterlight", WathomEnterLight)]]
 
     -- stuff relating to Wathom's adrenaline timer. This can most likely be optimized.
     inst:DoPeriodicTask(1.5, function() AmpTimer(inst) end)
@@ -792,7 +808,7 @@ local function master_postinit(inst)
     inst.components.sanity.night_drain_mult = 0
 
     -- Night Vision enabler
-    --    inst.components.playervision:ForceNightVision(true) -- Should only force this if it's night or in caves.
+    -- inst.components.playervision:ForceNightVision(true) -- Should only force this if it's night or in caves.
 
     -- Doubles Wathom's attack range so he can jump at things from further away.
     -- inst.components.combat.attackrange = 4

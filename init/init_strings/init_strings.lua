@@ -36,11 +36,7 @@ RECIPE_DESC.UM_BEAR_TRAP_EQUIPPABLE_TOOTH = "These jaws need to get a grip!"
 RECIPE_DESC.UM_BEAR_TRAP_EQUIPPABLE_GOLD = "My shiny teeth and me!"
 RECIPE_DESC.ARMOR_GLASSMAIL = "Surround yourself with broken glass."
 RECIPE_DESC.MUTATOR_TRAPDOOR = "They're smart, allegedly."
-if TUNING.DSTU.DATES.APRIL_FOOLS then
-    RECIPE_DESC.DRIFTWOODFISHINGROD = "Go fucking fishing. For fucking fish."
-else
-    RECIPE_DESC.DRIFTWOODFISHINGROD = "Go fancy fishing. For fancy fish."
-end
+RECIPE_DESC.DRIFTWOODFISHINGROD = TUNING.DSTU.DATES.APRIL_FOOLS and "Go fucking fishing. For fucking fish." or "Go fancy fishing. For fancy fish."
 RECIPE_DESC.UNCOMPROMISING_FISHINGNET = "Nothing but net!"
 RECIPE_DESC.UNCOMPROMISING_HARPOON = "Keel Haul 'Em!"
 RECIPE_DESC.UNCOMPROMISING_HARPOON_HEAVY = "Up for a Chain'ge?"
@@ -68,9 +64,6 @@ RECIPE_DESC.TRINKET_6 = "A key ingredient for modern marvels."
 RECIPE_DESC.PORTABLEBOAT_ITEM = "Pack up and go!"
 RECIPE_DESC.MASTUPGRADE_WINDTURBINE_ITEM = "Full speed ahead!"
 RECIPE_DESC.CODEX_MANTRA = "Repeat after me."
-if GetModConfigData("telestaff_rework") then
-    RECIPE_DESC.TELEBASE = "Gems included."
-end
 -- sailing rebalance strings
 RECIPE_DESC.MOONSTORM_STATIC_ITEM = "The power of the moon, contained!"
 RECIPE_DESC.ALTERGUARDIANHATSHARD = "Harness the moonlight."
@@ -265,6 +258,7 @@ STRINGS.ACTIONS.UPGRADE.SOUL = "Weave"
 STRINGS.ACTIONS.USESPELLBOOK.TELESTAFF = "Select Focus"
 STRINGS.ACTIONS.WX_CHARGEFROMPOWERCELL = "Charge"
 STRINGS.ACTIONS.CASTSPELL.CHARLES_CHARGE = "Charge!"
+STRINGS.ACTIONS.CASTSPELL.UM_BEARGERCLAW = "Throw"
 STRINGS.ACTIONS.CASTSPELL.UM_SHIELD_BASH = "Shield Bash"
 STRINGS.ACTIONS.CASTSPELL.SLINGSHOT = "Shoot"
 STRINGS.ACTIONS.CASTSPELL.WIXIE_SLING = "Sling"
@@ -909,8 +903,8 @@ STRINGS.UM_DESCRIPTOR = {
         PREFIX = "When applied:",
         BLUE1 = {
             "Gives summer insulation when held and freezes enemies on hit.",
-            "Gives summer insulation when held and freezes enemies on hit.\nHitting frozen enemies grants you an ice shield.",
-            "Gives summer insulation when held and freezes enemies on hit.\nHitting frozen enemies grants you an ice shield.",
+            "Gives summer insulation when held and freezes enemies on hit.\nFreezing enemies grants you an ice shield.",
+            "Gives summer insulation when held and freezes enemies on hit.\nFreezing enemies grants you an ice shield.",
         },
         BLUE2 = {
             "Converts durability into freshness. Can be fully preserved in an ice box.",
@@ -984,8 +978,8 @@ STRINGS.UM_DESCRIPTOR = {
         SLOTS_PREFIX = "Gem slots:",
         BLUE1 = {
             "Has summer insulation when held and freezes enemies on hit.",
-            "Has summer insulation when held and freezes enemies on hit.\nHitting frozen enemies grants you an ice shield.",
-            "Has summer insulation when held and freezes enemies on hit.\nHitting frozen enemies grants you an ice shield.",
+            "Has summer insulation when held and freezes enemies on hit.\nFreezing enemies grants you an ice shield.",
+            "Has summer insulation when held and freezes enemies on hit.\nFreezing enemies grants you an ice shield.",
         }, --
         BLUE2 = {
             "Has freshness instead of durability. Can be fully preserved in an ice box.",

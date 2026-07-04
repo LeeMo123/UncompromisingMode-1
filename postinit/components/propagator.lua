@@ -1,13 +1,26 @@
 local env = env
 GLOBAL.setfenv(1, GLOBAL)
 ------------------------Fire spread is less efficient in winter-----------------------------------------
-local TARGET_CANT_TAGS = { "INLIMBO" }
-local TARGET_MELT_MUST_TAGS = { "frozen", "firemelt" }
+local TARGET_CANT_TAGS = {"INLIMBO"}
+local TARGET_MELT_MUST_TAGS = {"frozen", "firemelt"}
+
+--[[local function PreventAllyFireDamage(ret, inst)
+    for k, v in pairs(ret) do
+        if v:IsValid() and v.components.propagator and v.components.health
+            and v.components.health.vulnerabletoheatdamage ~= false and not UMCommonFns.IsNotFriendly(inst, v) then
+            table.remove(ret, k)
+        end
+    end
+    return ret
+end]]
 
 env.AddComponentPostInit("propagator", function(self)
-    local _OldOnUpdate = self.OnUpdate
-
+    local _OnUpdate = self.OnUpdate
     function self:OnUpdate(dt, ...)
+        --[[local damager = self.inst.damager and self.inst.damager:IsValid() and self.inst.damager
+        if UMSimTempOverride and damager and self.spreading and self.damages then
+            UMSimTempOverride.data = {fn = PreventAllyFireDamage, inst = damager}
+        end]]
         if TheWorld.state.season == "winter" and not self.inst.sg then
             self:CalculateHeatCap()
 
@@ -34,9 +47,7 @@ env.AddComponentPostInit("propagator", function(self)
                             local dsq = VecUtil_LengthSq(x - vx, z - vz)
 
                             if v ~= self.inst then
-                                if v.components.propagator ~= nil and
-                                    v.components.propagator.acceptsheat and
-                                    not v.components.propagator.pauseheating then
+                                if v.components.propagator ~= nil and v.components.propagator:AcceptsHeat() then
                                     local percent_heat = math.max(.1, 1 - dsq / prop_range_sq)
                                     v.components.propagator:AddHeat(self.heatoutput * percent_heat * dt, self.inst)
                                 end
@@ -49,7 +60,7 @@ env.AddComponentPostInit("propagator", function(self)
                                     end
                                 end
 
-                                if not isendothermic and (v:HasTag("frozen") or v:HasTag("meltable")) then
+                                if not isendothermic and v:HasAnyTag("frozen", "meltable") then
                                     v:PushEvent("firemelt")
                                     v:AddTag("firemelt")
                                 end
@@ -75,7 +86,7 @@ env.AddComponentPostInit("propagator", function(self)
                 end
             else
                 if not (self.inst.components.heater ~= nil and self.inst.components.heater:IsEndothermic()) then
-                    local ents = TheSim:FindEntities(x, y, z, prop_range, TARGET_MELT_MUST_TAGS)
+                    local ents = TheSim:FindEntities(x, y, z, prop_range, nil, nil, TARGET_MELT_MUST_TAGS)
                     for i, v in ipairs(ents) do
                         v:PushEvent("stopfiremelt")
                         v:RemoveTag("firemelt")
@@ -86,7 +97,7 @@ env.AddComponentPostInit("propagator", function(self)
                 end
             end
         else
-            _OldOnUpdate(self, dt, ...)
+            _OnUpdate(self, dt, ...)
         end
     end
 end)

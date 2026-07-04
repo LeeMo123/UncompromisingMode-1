@@ -62,7 +62,6 @@ TUNING.DSTU = {
     GOODIESNERF = GetModConfigData("goodies_nerf"),
     -- Daywalker
     DAYWALKERSPAWN = GetModConfigData("daywalker_spawn"),
-    DAYWALKERSPAWN = GetModConfigData("daywalker_spawn"),
 
     -- Global appearance rate of foods
     FOOD_CARROT_PLANTED_APPEARANCE_PERCENT = 0.75,
@@ -73,7 +72,6 @@ TUNING.DSTU = {
     FOOD_MUSHROOM_RED_APPEARANCE_PERCENT = 0.7,
     -- Growth time increases
     STONE_FRUIT_GROWTH_INCREASE = 3,
-    TREE_GROWTH_TIME_INCREASE = 1.00,
     BERRYBUSH_JUICY_CYCLES = 2,
     -- Food stats
     FOOD_BUTTERFLY_WING_HEALTH = 1,
@@ -210,6 +208,8 @@ TUNING.DSTU = {
     REGSPIDERJUMP = GetModConfigData("alljumperspiders"),
     SPIDERWARRIORCOUNTER = GetModConfigData("spiderwarriorcounter"),
     TRAPDOORSPIDERS = GetModConfigData("trapdoorspiders"),
+    -- Merms
+    MERMTWEAKS = GetModConfigData("mermtweaks"),
     -- Perishable Increase
     --PERISHABLETIME = GetModConfigData("more perishing"),
     -- Fire Loot Rework
@@ -241,7 +241,7 @@ TUNING.DSTU = {
     WX78_MOISTURE_DAMAGE_INCREASE = 3,
     WX78_CONFIG = GetModConfigData("wx78"),
     WX78_BACKUPBODY = GetModConfigData("wx78_backupbody"),
-    WXLESS = false, --GetModConfigData("wxless"),
+    WXLESS = false,          --GetModConfigData("wxless"),
     WXLESSSPEEDBUMP = false, --GetModConfigData("wxlessspeedbump"),
 
     -- Wormwood
@@ -264,6 +264,19 @@ TUNING.DSTU = {
     OLD_SHADOWWAXWELL_SANITY_COST = 55,
     OLD_SHADOWWAXWELL_SANITY_PENALTY = .275,
     WAXWELL = GetModConfigData("waxwell"),
+    -- Shadow Levels
+    SHADOW_CROWN_SHADOW_LEVEL = 2,
+    ANCIENT_AMULET_SHADOW_LEVEL = 2,
+    -- Vetcurse Shadow Levels
+    CURSED_ANTLER_SHADOW_LEVEL = 1,
+    BEARGERCLAW_SHADOW_LEVEL = 1,
+    SLOBBERLOBBER_SHADOW_LEVEL = 1,
+    ANTLIONSTAFF_SHADOW_LEVEL = 1,
+    FEATHER_FROCK_SHADOW_LEVEL = 1,
+    KLAUS_AMULET_SHADOW_LEVEL = 1,
+    BEEGUN_SHADOW_LEVEL = 1,
+    GOREHORN_SHADOW_LEVEL = 2,
+    CRABCLAW_SHADOW_LEVEL = 1,
     -- Winona
     WINONA_WORKER = GetModConfigData("winonaworker"),
     WINONA_WACKCATS = GetModConfigData("winonawackycats"),
@@ -286,6 +299,9 @@ TUNING.DSTU = {
     WANDA_NERF = GetModConfigData("wanda_nerf"),
     -- Wortox
     -- WORTOX = GetModConfigData("wortox"),
+    -- Walter
+    WOBY_DIG_COST = 1,
+    WOBY_DIG_SNOW_PILE_COST = 3,
     -- Mobs
     RAIDRAT_HEALTH = 100,
     RAIDRAT_DAMAGE = 20,
@@ -299,8 +315,8 @@ TUNING.DSTU = {
     RAIDRAT_SPAWNRATE = seg_time / 5,
     RAIDRAT_SPAWNRATE_VARIANCE = (seg_time / 5) * 0.5,
     SNIFFER_ITEM = 40,
-    SNIFFER_PLAYER = 120,            
-    
+    SNIFFER_PLAYER = 120,
+
     PIEDPIPER_TOOT_RANGE = 25,
     -- Weather Start Date
     WEATHERHAZARD_START_DATE_AUTUMN = GetModConfigData("weatherhazard_autumn"),
@@ -341,10 +357,11 @@ TUNING.DSTU = {
     TOAD_RAIN_DELAY = { min = 5, max = 10 },
     SUMMER_CAVES_TEMP_MULT = .85,
     WINTER_CAVES_TEMP_MULT = 1.25,
-    
+
     MUSHROOM_CHANGES = GetModConfigData("mushroom_changes"),
     ALL_MUST_BE_GATHERED = false,
     WATERING_TEMPERATURE = GetModConfigData("watering_thermal"),
+    BATH_BOMB = GetModConfigData("bath_heal"),
     KLAUS_AMULET_SECOND_HIT_DAMAGE_MULT = 0.75,
     KLAUS_AMULET_ABSORPTION = 0.3,
     ORANGESTAFF_COOLDOWN_1 = 5,
@@ -353,8 +370,8 @@ TUNING.DSTU = {
     ORANGESTAFF_DISTANCE_1 = 8,
     ORANGESTAFF_DISTANCE_2 = 16,
     KOALEFANT_HEALTH = 2000,
-    KOALEFANT_STOMP_COUNTERATTACK = {MIN = 8, MAX = 12},
-	SNAILDRAKEHAT_FIRE_RESIST = 0.75,
+    KOALEFANT_STOMP_COUNTERATTACK = { MIN = 8, MAX = 12 },
+    SNAILDRAKEHAT_FIRE_RESIST = 0.75,
 
     ----------------------------------------------------------------------------
     -- Dynamic Boss Resistance
@@ -384,7 +401,6 @@ TUNING.DSTU = {
     ANNOUNCE_BASESTATUS = GetModConfigData("announce_basestatus"),
     EYEBRELLAREWORK = GetModConfigData("eyebrellarework"),
     -- More Config
-    UPDATE_CHECK = CurrentRelease.GreaterOrEqualTo("R41_ST_WX78"), -- REMEMBER TO ALWAYS UPDATE THIS WITH NEW BETAS.
     POCKET_POWERTRIP = GetModConfigData("pocket_powertrip_"),
     WINTER_BURNING = GetModConfigData("winter_burning"),
     BUTTERFLYWINGS_NERF = GetModConfigData("butterfly_tweaks"),
@@ -395,6 +411,8 @@ TUNING.DSTU = {
     MONSTER_EGGS = GetModConfigData("monster_eggs"),
     IMPASSBLES = GetModConfigData("passibleimpassibles"),
     VETCURSE = GetModConfigData("vetcurse"),
+    VETCURSE_DAMAGE_TAKEN_MULT = 1.2,
+    --VETCURSE_HUNGER_RATE = 1.2,
     MOON_TRANSFORMATIONS = GetModConfigData("moon_transformations"),
     AMALGAMS = GetModConfigData("amalgams"),
     HUNGRYFROGS = GetModConfigData("hungryfrogs"),
@@ -439,7 +457,7 @@ TUNING.DSTU = {
     TELESTAFF_REWORK = GetModConfigData("telestaff_rework"),
     BEEBOX_NERF = GetModConfigData("beebox_nerf"),
     CANEDURABILITY = GetModConfigData("cane_durability"),
-	COOLDOWN_ORANGESTAFF = GetModConfigData("cooldown_orangestaff"),
+    COOLDOWN_ORANGESTAFF = GetModConfigData("cooldown_orangestaff"),
     --AC_COOLING = GetModConfigData("ac_does_ac"),
     HARDER_SPIDERQUEEN = GetModConfigData("harder_spider_queen"),
     HARDER_MOOSE = GetModConfigData("harder_moose"),
@@ -464,6 +482,7 @@ TUNING.DSTU = {
     UI_VETCURSE = GetModConfigData("ui_showvetcurse", true),
     UI_SHOWMULTIPRODUCTS = GetModConfigData("ui_showmultiproducts", true),
     UI_SHOWMULTIPRODUCTS_FONT = GetModConfigData("ui_showmultiproducts_font", true),
+    UI_HEALTHPENALTY_GREY = GetModConfigData("ui_healthpenalty_grey", true),
 
     -- boss hp qol
 
@@ -493,17 +512,152 @@ TUNING.DSTU = {
 
     CURSED_ANTLER_COOLDOWN = 5,
     SLOBBERLOBBER_COOLDOWN = 45,
+    ANTLIONSTAFF_COOLDOWN = 4,
     CRYSTAL_CURSED_ANTLER_COOLDOWN = 5,
     SHIELDOFTERROR_COOLDOWN = 5,
+    CASTSPELL_OVERRIDECONTROL = GLOBAL.CONTROL_FORCE_ATTACK,
 
     -- Shadow Damage tuning
     RUINSNIGHTMARE_DAMAGE = 75,
     HERMITCRAB_MOONTREEBLOSSOMTEA_SHADOWCREATURE_DAMAGE = 75,
 
-    NO_THICKET_APHIDS = {"tumbleweed","beefalo", "fruitbat"}, --AXE Add more as needed, most things >should< spawn aphids though.
+    NO_THICKET_APHIDS = { "tumbleweed", "beefalo", "fruitbat" },   --AXE Add more as needed, most things >should< spawn aphids though.
 
-    RIPPLE_BLACKLIST_PREFABS = {"webbedcreature", "rainometer"}, -- AXE Many cases would like "structure" tag still count for ripples, but many structures are incompatible, so we do a prefab based blacklist as well
-    RIPPLE_BLACKLIST_TAGS = {"projectile", "FX"} -- AXE other cases are universal, projectiles shouldn't really ever have ripples
+    RIPPLE_BLACKLIST_PREFABS = { "webbedcreature", "rainometer" }, -- AXE Many cases would like "structure" tag still count for ripples, but many structures are incompatible, so we do a prefab based blacklist as well
+    RIPPLE_BLACKLIST_TAGS = { "projectile", "FX", "balloon" },     -- AXE other cases are universal, projectiles shouldn't really ever have ripples
+
+    -- Rat Poison
+    RATPOISON_EAT_DAMAGE = 24,
+    RATPOISON_EAT_USES = 8,
+    RATPOISON_DURATION = 20, --total seconds
+    RATPOISON_TICKRATE = 1,  --every x seconds
+    RATPOISON_TICK_DAMAGE = 2,
+    RATPOISON_RATMULT = 2.5, --damage multiplier against rats
+
+    -- Gemology
+    GEM_USES = {
+        1 / 150, --tier 1
+        1 / 250, --tier 2
+        1 / 450  --tier 3
+    },
+
+    REDGEM2_DAMAGE = {
+        8,
+        17,
+        34
+    },
+
+    --thats a percent of damage added on top of the normal damage.
+    REDGEM2_BURNING_MULT = {
+        0,
+        0.05,
+        0.2
+    },
+
+    -- it's what the document said.... I guess the damage isn't what we're really looking for, it's being able to eat part of the mob
+    REDGEM1_DEVOUR_MULT = {
+        0,
+        1 / 10,
+        1 / 5
+    },
+
+    REDGEM1_HUNGER_MULT = 0.5,
+    REDGEM1_HEALTH_MULT = 0.01,
+
+    GREENGEM1_MELEE_SPEED = {
+        1.1,
+        1.2,
+        1.4,
+    },
+
+    GREENGEM1_SHADOW_CLONE_CHANCE_MULT = 0.3, --(tier-1)*this
+    GREENGEM1_SHADOW_CLONE_MAX_DIST = 50 ^ 2,
+    GREENGEM1_SHADOW_CLONE_FIND_MAX_DIST = 24,
+    GREENGEM1_SHADOW_CLONE_SANITY_COST = -5,
+    GREENGEM1_TOOL_EFFICENCY_MOD = 0.25,
+
+    GREENGEM2_MAX_ENCHANTS = 3,
+
+    YELLOWGEM1_SANITY = {
+        TUNING.DAPPERNESS_SMALL / 2,
+        TUNING.DAPPERNESS_SMALL,
+        TUNING.DAPPERNESS_SMALL * 2,
+    },
+    YELLOWGEM1_DURATION = {
+        TUNING.TOTAL_DAY_TIME * 8,
+        TUNING.TOTAL_DAY_TIME * 12,
+        TUNING.TOTAL_DAY_TIME * 16,
+    },
+
+    YELLOWGEM2_SHOCK_DAMAGE = {
+        5,
+        10,
+        15,
+    },
+
+    YELLOWGEM2_SHOCK_WET_MULT = 1.5,
+    YELLOWGEM2_SHOCK_DIST_FACTOR = 2,
+
+    YELLOWGEM2_SHOCK_MULT_RANGES = {
+        { 0.0,  0.0 }, --min, max
+        { 0.1,  1.25 },
+        { 0.25, 1.5 },
+    },
+
+
+    YELLOWGEM2_SHOCK_RANGE = 4,
+    YELLOWGEM2_ATTACK_TIME_FACTOR = 5,
+    YELLOWGEM2_SHOCK_COOLDOWN = 3,
+
+    PALEGEM1_EXTRA_DAMAGE_PER_TIER = 17,
+
+    PALEGEM2_USES = {
+        1 / 400,
+        1 / 500,
+        1 / 600,
+    },
+
+    PALEGEM2_USE_CHANCE = {
+        2, --math.random > this, so never.
+        0.7,
+        0.4,
+    },
+
+
+    PURPLEGEM1_EXTRA_DAMAGE_THRESHOLD = 50,
+    PURPLEGEM1_EXTRA_DAMAGE_MULT = 0.25,
+    PURPLEGEM2_ITEM_GRAB_RANGE = 8,
+    PURPLEGEM2_OWNER_RANGE = 10,
+    PURPLEGEM2_USES = {
+        1,
+        1 / 4,
+        1 / 8
+    },
+
+    ORANGEGEM1_STRUCTURE_RANGE = 48, --this range is probably not good for performance.
+    ORANGEGEM1_BONUS_FACTOR = 150,
+
+    ORANGEGEM1_MAX_STRUCTURES = 30,
+    ORANGEGEM2_OLD_DAPPERNESS_PER_TIER = TUNING.DAPPERNESS_SMALL / 5,
+    ORANGEGEM2_DAPPERNESS_PER_TIER = TUNING.DAPPERNESS_SMALL / 10,
+
+    BLUEGEM1_INSULATION_PER_TIER = TUNING.INSULATION_SMALL,
+    BLUEGEM1_COLDNESS_PER_TIER = 0.15,
+    BLUEGEM1_ICE_SHIELD_TIER_PER_TIER = 0.125,
+    BLUEGEM1_ICE_SHIELD_TIER_BASE = 0.25,
+
+    BLUEGEM2_PERISHABLE_EXTRA_TIME_MULT = 0.5,
+
+    BLUEGEM2_PERISHABLE_MULT = 2,
+    BLUEGEM2_NON_PERISHABLE_MULT = 4,
+
+    GEM_REPAIRER_REPAIR_VALUE = {
+        0.6, --first
+        0.4,
+        0.2,
+        0.1, --min repair value
+    }
+
 }
 
 -- [              DST Related Overrides              ]
@@ -514,8 +668,8 @@ if GetModConfigData("beebox_nerf") then
 end
 
 -- Boulderbough
-    TUNING.TREE_ROCK.BURN_TIME = 30
-    TUNING.TREE_ROCK.SAPLING_GROW_TIME = {base=6.5*day_time, random=1*day_time}
+TUNING.TREE_ROCK.BURN_TIME = 30
+TUNING.TREE_ROCK.SAPLING_GROW_TIME = { base = 6.5 * day_time, random = 1 * day_time }
 
 -- Glass Cutter
 if GetModConfigData("celestialitems_revert") then
@@ -714,7 +868,7 @@ end
 --TUNING.KRAMPUS_THRESHOLD_VARIANCE = 40
 --end
 
-TUNING.COMPASS_FUEL = total_day_time * 5
+TUNING.COMPASS_FUEL = total_day_time * 10
 
 TUNING.BOAT.GRASSBOAT_LEAK_DAMAGE.med_leak = 75
 TUNING.BOAT.GRASSBOAT_LEAK_DAMAGE.small_leak = 50

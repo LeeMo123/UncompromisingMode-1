@@ -179,7 +179,45 @@ local function UpdateMineralLog(inst)
 end
 
 
+local function DespawnIceShield(inst)
+    if inst:HasTag("ice_shielded") and inst.ice_shield ~= nil then
+        inst.ice_shield_tier = inst.ice_shield.tier
+        inst.ice_shield_saverecord = inst.ice_shield:GetSaveRecord()
+    end
+end
+
+local DESPAWN_FOLLOWER_TAGS = { "pig", "raidrat", "winky_rat" }
+local DESPAWN_FOLLOWER_PREFABS = { "eyeofterror_mini_ally", "smallbird", "teenbird", "lightflier", "wx78_scanner" }
+local function DespawnFollowers(inst)
+    for k, v in pairs(inst.components.leader.followers) do
+        if k:HasTag("spider") and not TUNING.DSTU.TREATS_FOR_WEBBER or k:HasAnyTag(DESPAWN_FOLLOWER_TAGS) or TUNING.DSTU.MERMTWEAKS and k:HasTag("merm")
+            or table.contains(DESPAWN_FOLLOWER_PREFABS, k.prefab) then -- exluding things that can't/shouldn't/already do
+            local savedata = k:GetSaveRecord()
+            table.insert(inst.um_all_followers, savedata)
+            -- remove followers
+            k:AddTag("notarget")
+            k:AddTag("NOCLICK")
+            k.persists = false
+            if k.components.health then
+                k.components.health:SetInvincible(true)
+            end
+            k:DoTaskInTime(math.random() * 0.2, function(k)
+                local fx = SpawnPrefab("spawn_fx_small")
+                fx.Transform:SetPosition(k.Transform:GetWorldPosition())
+                local colourtweener = k.components.colourtweener or k:AddComponent("colourtweener")
+                colourtweener:StartTween({ 0, 0, 0, 1 }, 13 * FRAMES, k.Remove)
+            end)
+        end
+    end
+end
+
 env.AddPlayerPostInit(function(inst)
+    inst.ice_shield_health = net_int(inst.GUID, "iceshield.health", "iceshield.health_dirty")
+    inst.ice_shield_maxhealth = net_int(inst.GUID, "iceshield.maxhealth", "iceshield.health_dirty")
+
+    inst.ice_shield_health:set(0)
+    inst.ice_shield_maxhealth:set(0)
+
     if not TheWorld.ismastersim then
         inst:DoPeriodicTask(TUNING.SCRAPBOOK_UPDATERATE, UpdateMineralLog)
     end
@@ -252,10 +290,10 @@ env.AddPlayerPostInit(function(inst)
 
     if TUNING.DSTU.SHRINK then
         inst:DoPeriodicTask(.5, function()
-            if inst.components.locomotor ~= nil then
+            --[[if inst.components.locomotor ~= nil then
                 print("walkspeed = " .. inst.components.locomotor:GetWalkSpeed())
                 print("runspeed = " .. inst.components.locomotor:GetRunSpeed())
-            end
+            end]]
 
             if inst.components.hunger ~= nil
                 and inst.components.sanity ~= nil
@@ -279,22 +317,6 @@ env.AddPlayerPostInit(function(inst)
         end)
     end
 
-    if TUNING.DSTU.VETCURSE == "always" then
-        if inst ~= nil and inst.components.health ~= nil and
-            not inst:HasTag("playerghost") then
-            if not inst:HasTag("vetcurse") then
-                --inst.components.debuffable:AddDebuff("buff_vetcurse", "buff_vetcurse")
-                if inst.UMToggleVetCurse then inst:UMToggleVetCurse(true) end
-                inst:PushEvent("foodbuffattached", { buff = "ANNOUNCE_ATTACH_BUFF_VETCURSE", 1 })
-            end
-        end
-    elseif TUNING.DSTU.VETCURSE == "off" and inst:HasTag("vetcurse") then
-        --[[if inst ~= nil and inst.components.debuffable ~= nil then
-            inst.components.debuffable:RemoveDebuff("buff_vetcurse")
-        end -- help I can't get this stupid thing to work!!]]
-        if inst.UMToggleVetCurse then inst:UMToggleVetCurse() end
-    end
-
     inst:AddTag("SLUDGE_CORK_upgradeuser")
 
     -- instead of just winky, why the hell not make it *all* followers?!
@@ -303,38 +325,16 @@ env.AddPlayerPostInit(function(inst)
     -- adding um_ prefix just in case...
 
     inst.OnDespawn = function(inst, migrationdata, ...)
-        for k, v in pairs(inst.components.leader.followers) do
-            if ((k:HasTag("spider") and not TUNING.DSTU.TREATS_FOR_WEBBER) or
-                    k:HasTag("pig") or k:HasTag("raidrat") or
-                    k:HasTag("winky_rat") or k:HasTag("merm") or k.prefab == "eyeofterror_mini_ally") or
-                k.prefab == "smallbird" or k.prefab == "teenbird" or k.prefab ==
-                "lightflier" then -- exluding things that can't/shouldn't/already do
-                local savedata = k:GetSaveRecord()
-                table.insert(inst.um_all_followers, savedata)
-                -- remove followers
-                k:AddTag("notarget")
-                k:AddTag("NOCLICK")
-                k.persists = false
-                if k.components.health then
-                    k.components.health:SetInvincible(true)
-                end
-                k:DoTaskInTime(math.random() * 0.2, function(k)
-                    local fx = SpawnPrefab("spawn_fx_small")
-                    fx.Transform:SetPosition(k.Transform:GetWorldPosition())
-                    if not k.components.colourtweener then
-                        k:AddComponent("colourtweener")
-                    end
-                    k.components.colourtweener:StartTween({ 0, 0, 0, 1 }, 13 * FRAMES, k.Remove)
-                end)
-            end
-        end
-
+        DespawnFollowers(inst)
+        DespawnIceShield(inst)
         return _OnDespawn(inst, migrationdata, ...)
     end
 
     local _OnSave = inst.OnSave
     inst.OnSave = function(inst, data, ...)
         data.um_all_followers = inst.um_all_followers
+        data.ice_shield_saverecord = inst.ice_shield_saverecord
+        data.ice_shield_tier = inst.ice_shield_tier
 
         if _OnSave then
             return _OnSave(inst, data, ...)
@@ -362,7 +362,13 @@ env.AddPlayerPostInit(function(inst)
                     end)
                 end
             end
+
+            if data.ice_shield_saverecord and data.ice_shield_tier then
+                local shield = SpawnSaveRecord(data.ice_shield_saverecord)
+                shield:Init(inst, "swap_body", data.ice_shield_tier)
+            end
         end
+
         if _OnLoad then
             return _OnLoad(inst, data, ...)
         end
@@ -385,5 +391,17 @@ env.AddPlayerPostInit(function(inst)
         else
             inst.starting_inventory = { "razor" }
         end
+    end
+
+    local current_time = os.time()
+    local current_month = os.date("*t", current_time).month
+
+    local UNLOCKMODDEDSKIN_RPC = CLIENT_MOD_RPC["ModdedSkins"] and GetClientModRPC("ModdedSkins", "UnlockModdedSkin")
+    if UNLOCKMODDEDSKIN_RPC then
+        inst:DoTaskInTime(0, function()
+            if current_month == 6 then
+                SendModRPCToClient(UNLOCKMODDEDSKIN_RPC, inst.userid, "ms_um_trans_bomb_moon")
+            end
+        end)
     end
 end)

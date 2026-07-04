@@ -74,6 +74,7 @@ function c_um_vetcurseitems()
         "cursed_antler",
         "beargerclaw",
         "slobberlobber",
+        "um_antlionstaff",
         "feather_frock",
         "gore_horn_hat",
         "klaus_amulet",
@@ -84,6 +85,7 @@ function c_um_vetcurseitems()
         "um_moonfly_lantern",
         "silksack",
         "crystal_cursed_antler",
+		"shieldofterror",
     }
     for k, v in ipairs(items) do
         c_give(v)
@@ -270,6 +272,39 @@ function c_um_setadrenaline(p)
     local player = ConsoleCommandPlayer()
     if player ~= nil and player.components.adrenaline ~= nil then
         player.components.adrenaline:SetPercent(p)
+    end
+end
+
+function c_um_setclaustrophobia(p)
+    local player = ConsoleCommandPlayer()
+    if player ~= nil and player.claustrophobia ~= nil then
+        player.claustrophobia = p
+        if p >= 1 and not player.wixiepanic then
+            player.wixiepanic = true
+            SendModRPCToServer(GetModRPC("WixieTheDelinquent", "ClaustrophobiaPanic"), player)
+        end
+    end
+end
+
+function c_um_godmodeclaustrophobia(player)
+    if TheWorld and not TheWorld.ismastersim then
+        c_remote("c_um_godmodeclaustrophobia()")
+        return
+    end
+
+    player = ConsoleCommandPlayer()
+    if player and player.claustrophobia and player:HasTag("troublemaker") then
+        SuUsed("c_um_godmodeclaustrophobia", true)
+        if not player.no_claustrophobia then
+            player.claustrophobia = 0
+            player.no_claustrophobia = true
+            print("No Claustrophobia mode: On")
+        else
+            player.no_claustrophobia = false
+            print("No Claustrophobia mode: Off")
+        end
+    else
+        print("You are not Wixie! Or you don't have any Claustrophobia!")
     end
 end
 

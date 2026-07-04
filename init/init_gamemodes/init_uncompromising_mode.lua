@@ -220,9 +220,7 @@ end
 --if GetModConfigData("character_changes") then <-- This isn't even a config option.
 modimport("init/init_character_changes/generic")
 modimport("init/init_character_changes/wendy")
---if not TUNING.DSTU.UPDATE_CHECK then
 modimport("init/init_character_changes/wx78")
---end
 modimport("init/init_character_changes/wickerbottom")
 modimport("init/init_character_changes/woodie")
 modimport("init/init_character_changes/wes")
@@ -232,9 +230,7 @@ modimport("init/init_character_changes/winona")
 modimport("init/init_character_changes/wanda")
 modimport("init/init_character_changes/wortox")
 modimport("init/init_character_changes/warly")
-if TUNING.DSTU.WAXWELL then
-    modimport("init/init_character_changes/waxwell")
-end
+modimport("init/init_character_changes/waxwell")
 modimport("init/init_character_changes/walter")
 modimport("init/init_character_changes/wurt")
 modimport("init/lagcomp_warning")

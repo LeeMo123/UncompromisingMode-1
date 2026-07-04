@@ -39,15 +39,23 @@ UMCommonFns.ShouldKnockback = function(inst)
         and (not bodyslot or not bodyslot:HasAnyTag(UMCommonFns.KNOCKBACK_ARMOR_CANT_TAGS))
 end
 
-UMCommonFns.IsAlly = function(inst, guy, tags) -- Used for UMIsAlly on certain creatures.
+UMCommonFns.IsAlly_GetLeader = function(inst)
     local follower = inst.replica.follower
-    local guy_combat, guy_follower = guy.replica.combat, guy.replica.follower
-    if not (tags and guy_combat) or follower and follower:GetLeader() or guy_follower and guy_follower:GetLeader() then return false end
-    return inst.replica.combat:GetTarget() ~= guy and guy.replica.combat:GetTarget() ~= inst and guy:HasAnyTag(tags)
+    return follower and follower:GetLeader()
+end
+
+UMCommonFns.IsAlly = function(inst, guy, tags) -- Used for UMIsAlly on certain creatures.
+    local guy_combat = guy.replica.combat
+    if not (tags and guy_combat) or not (inst.replica.combat:GetTarget() ~= guy and guy_combat and guy_combat:GetTarget() ~= inst) then return false end
+    local myleader, guyleader = UMCommonFns.IsAlly_GetLeader(inst), UMCommonFns.IsAlly_GetLeader(guy)
+    local myleader_leader, guyleader_leader = myleader and UMCommonFns.IsAlly_GetLeader(myleader), guyleader and UMCommonFns.IsAlly_GetLeader(guyleader)
+    if myleader and myleader.isplayer or guyleader and guyleader.isplayer then return false end
+    if myleader_leader and myleader_leader.isplayer or guyleader_leader and guyleader_leader.isplayer then return false end
+    return guy:HasAnyTag(tags)
 end
 
 UMCommonFns.IsNotFriendly = function(attacker, target) -- Is the target an ally or my leader's ally?
-    if not target.components.health then return true end
+    if not (attacker and attacker:IsValid()) or not target.components.health then return true end
     local attackercombat = attacker and attacker.components.combat
     local leader = attacker and attacker.components.follower and attacker.components.follower:GetLeader()
     local leadercombat = leader and leader.components.combat
@@ -56,21 +64,45 @@ UMCommonFns.IsNotFriendly = function(attacker, target) -- Is the target an ally 
 end
 
 UMCommonFns.VetcurseUnequip = function(inst, owner, slot)
-    if not owner:HasTag("vetcurse") and owner:HasTag("player") and not owner.components.inventory.isloading then
-        inst:DoTaskInTime(0, function(inst)
-            --local owner = inst.components.inventoryitem and inst.components.inventoryitem.owner
-            local tool = owner and owner.components.inventory:GetEquippedItem(slot)
-            if tool and owner then
-                owner.components.inventory:Unequip(slot)
-                owner.components.inventory:DropItem(tool)
-                owner.components.inventory:GiveItem(inst)
-                UMCommonFns.Say(owner, GetString(owner, "CURSED_ITEM_EQUIP"))
-                inst.SoundEmitter:PlaySound("dontstarve_DLC001/common/HUD_hot_level1")
-                if owner.sg then owner.sg:GoToState("hit") end
-            end
-        end)
-        return true
+    if owner:HasTag("player") then
+        if not owner:HasTag("vetcurse") and not owner.components.inventory.isloading then
+            inst:DoTaskInTime(0, function(inst)
+                --local owner = inst.components.inventoryitem and inst.components.inventoryitem.owner
+                local tool = owner and owner.components.inventory:GetEquippedItem(slot)
+                if tool and owner then
+                    owner.components.inventory:Unequip(slot)
+                    owner.components.inventory:DropItem(tool)
+                    owner.components.inventory:GiveItem(inst)
+                    UMCommonFns.Say(owner, GetString(owner, "CURSED_ITEM_EQUIP"))
+                    inst.SoundEmitter:PlaySound("dontstarve_DLC001/common/HUD_hot_level1")
+                    if owner.sg then owner.sg:GoToState("hit") end
+                end
+            end)
+            return true
+        end
+    elseif not owner:HasTag("equipmentmodel") then
+        local leader = owner.components.follower and owner.components.follower:GetLeader()
+        if not leader or not leader:HasTag("vetcurse") then
+            inst:DoTaskInTime(0, function(inst)
+                if owner.components.inventory and inst:IsValid() and inst.components.inventoryitem and inst.components.inventoryitem.owner == owner then
+                    owner.components.inventory:DropItem(inst)
+                end
+            end)
+            return true
+        end
     end
+end
+
+local ignoredactions = {ACTIONS.LOOKAT, ACTIONS.WALKTO}
+UMCommonFns.HasRightClickAction = function(inst, doer, pos, target)
+    if inst.um_checkingactions then return true end
+    inst.um_checkingactions = true
+    local _, rmb
+    if doer.components.playeractionpicker then
+        _, rmb = doer.components.playeractionpicker:DoGetMouseActions(pos, target)
+    end
+    inst.um_checkingactions = nil
+    return rmb and not table.contains(ignoredactions, rmb.action)
 end
 
 -- Unified megaflare timer reduction used by all seasonal boss spawners
